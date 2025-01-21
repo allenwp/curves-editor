@@ -4,6 +4,14 @@ extends Line2D
 @export var zero: float
 @export var one: float
 @export var use_reference_curve: bool
+@export var use_troy_curve: bool
+
+@export var LOG2_MIN: float = -10.0
+@export var LOG2_MAX: float = +6.5
+@export var MIDDLE_GRAY: float = 0.18
+
+@export var a_up: float = 69.86278913545539; # ??
+@export var a_down: float = 59.507875; # ??
 
 var reference_points: PackedVector2Array
 
@@ -25,7 +33,7 @@ func refresh() -> void:
 	for i in range(num_points):
 		var val: float = i / (num_points - 1.0)
 
-		var y_val: float = troy_sigmoid_exact(val)
+		var y_val: float = troy_sigmoid_exact(val) if use_troy_curve else blender_sigmoid_exact(val)
 
 		array.push_back(Vector2(val * 1000.0, y_val * -1000.0))
 	points = array
@@ -44,62 +52,149 @@ func get_new_poly_approx(x: float) -> float:
 
 
 
+func scale(transition_x, transition_y, power, slope) -> float:
+	var term_a: float = (slope * (1.0 - transition_x)) ** (-1.0 * power);
+	var term_b: float = (((slope * (1.0 - transition_x)) / (1.0 - transition_y)) ** power) - 1.0
+	return (term_a * term_b) ** (-1.0 / power)
+
+func exponential_curve(x_in, scale_input, slope, power, transition_x, transition_y) -> float:
+	return (scale_input * exponential(((slope * (x_in - transition_x)) / scale_input), power)) + transition_y
+
+func exponential(x_in, power) -> float:
+	return x_in / ((1 + (x_in ** power)) ** (1 / power))
+
 func calculate_sigmoid(x_in: float) -> float:
-	var pivots: PackedFloat64Array = [10.0/16.5, 0.18 ** (1.0 / 2.4)]
-	var slope: float = 2.4
-	var lengths: float = 0.0
-	var powers: float = 1.5
-	var limits: PackedVector2Array = [Vector2(0.0,0.0), Vector2(1.0,1.0)]
+	const slope: float = 2.4
+	const power: float = 1.5
+	const LOG2_MIN: float = -10.0
+	const LOG2_MAX: float = +6.5
+	const MIDDLE_GRAY: float = 0.18
+	var pivot_x: float = abs(LOG2_MIN/(LOG2_MAX  - LOG2_MIN))
+	var pivot_y: float = MIDDLE_GRAY ** (1.0 / 2.4)
 
+	var scaleValue
+	if x_in < pivot_x:
+		scaleValue = -1.0 * scale(1.0 - pivot_x, 1.0 - pivot_y, power, slope)
+	else:
+		scaleValue = scale(pivot_x, pivot_y, power, slope)
 
-
-	return x_in
-
-
-func step(edge,value):
-	return 0.0 if value < edge else 1.0
+	return exponential_curve(x_in, scaleValue, slope, power, pivot_x, pivot_y)
 
 func blender_sigmoid_exact(v: float) -> float:
-	# pivots: 0.60606060606060608, 0.48943708957387833 = pow(0.18, (1.0 / 2.4))
-	# lengths: 0, 0
-	# powers: 1.5, 1.5
-	# limits: (0,0),(1,1)
-	# slope: 2.4
-	# transition_toe_x: 0.60606060606060608 = -10.0 / (6.5 - (-10.0))
-	# transition_shoulder_y: 0.60606060606060608 = -10.0 / (6.5 - (-10.0))
-	# transition_toe_y: 0.48943708957387833 = pow(0.18, (1.0 / 2.4))
-	# transition_shoulder_y: 0.48943708957387833 = pow(0.18, (1.0 / 2.4))
-	# inverse_transition_toe_x: 0.39393939393939392
-	# inverse_transition_toe_y: 0.51056291042612167
-	# inverse_limit_toe_x: 1.0
-	# inverse_limit_toe_y: 1.0
-	# scale_toe: -0.56567560665437455
-	# scale_shoulder: 0.71519828627904436
-	# intercept: -0.96510836497157626
+	return calculate_sigmoid(v)
 
 
-	var threshold = 0.60606060606060608;
-	var a_up = 69.86278913545539;
-	var a_down = 59.507875;
-	var b_up = 13.0 / 4.0;
-	var b_down = 3.0 / 1.0;
-	var c_up = -4.0 / 13.0;
-	var c_down = -1.0 / 3.0;
 
-	var mask = step(v, threshold);
-	var a = a_up + (a_down - a_up) * mask;
-	var b = b_up + (b_down - b_up) * mask;
-	var c = c_up + (c_down - c_up) * mask;
-	return 0.5 + (((-2.0 * threshold)) + 2.0 * v) * pow(1.0 + a * pow(abs(v - threshold), b), c);
+
+# func log2(value: float) -> float:
+# 	return log(value) / log(2)
+func step(edge, value):
+	return 0.0 if value < edge else 1.0
+
+
+# 1:1 exact copy from blender:
+# func linear_breakpoint(numerator, slope, coordinate) -> float:
+# 	var denominator = ((slope ** 2.0) + 1.0) ** (1.0 / 2.0)
+# 	return numerator / denominator + coordinate
+
+# func scale(limit_x, limit_y, transition_x, transition_y, power, slope) -> float:
+# 	var term_a: float = (slope * (limit_x - transition_x)) ** (-1.0 * power);
+# 	var term_b: float = (((slope * (limit_x - transition_x)) / (limit_y - transition_y)) ** power) - 1.0
+# 	return (term_a * term_b) ** (-1.0 / power)
+
+# func exponential_curve(x_in, scale_input, slope, power, transition_x, transition_y) -> float:
+# 	return (scale_input * exponential(((slope * (x_in - transition_x)) / scale_input), power)) + transition_y
+
+# func exponential(x_in, power) -> float:
+# 	return x_in / ((1 + (x_in ** power)) ** (1 / power))
+
+# func calculate_sigmoid(x_in: float) -> float:
+# 	const LOG2_MIN: float = -10.0
+# 	const LOG2_MAX: float = +6.5
+# 	const MIDDLE_GRAY: float = 0.18
+	
+# 	var pivots: PackedFloat64Array = [abs(LOG2_MIN/(LOG2_MAX  - LOG2_MIN)), MIDDLE_GRAY ** (1.0 / 2.4)]
+# 	var slope: float = 2.4
+# 	var powers: float = 1.5
+# 	var limits: PackedFloat64Array = [0.0, 1.0]
+
+# 	var transition_toe_x: float = pivots[0]
+# 	var transition_toe_y: float = pivots[1]
+# 	var transition_shoulder_x: float = pivots[0]
+# 	var transition_shoulder_y: float = pivots[1]
+# 	var inverse_transition_toe_x: float = 1.0 - transition_toe_x
+# 	var inverse_transition_toe_y: float = 1.0 - transition_toe_y
+# 	var inverse_limit_toe_x: float = 1.0
+# 	var inverse_limit_toe_y: float = 1.0
+
+# 	var scale_toe: float = -1.0 * scale(inverse_limit_toe_x, inverse_limit_toe_y, inverse_transition_toe_x, inverse_transition_toe_y, powers, slope)
+# 	var scale_shoulder: float = scale(limits[1], limits[1], transition_shoulder_x, transition_shoulder_y, powers, slope)
+# 	var intercept: float = transition_toe_y - (slope * transition_toe_x)
+
+# 	if x_in < transition_toe_x:
+# 		return exponential_curve(x_in, scale_toe, slope, powers, transition_toe_x, transition_toe_y)
+# 	elif x_in <= transition_shoulder_x:
+# 		return (slope * x_in) + intercept
+# 	else:
+# 		return exponential_curve(x_in, scale_shoulder, slope, powers, transition_shoulder_x, transition_shoulder_y)
+
+
+
+
+
+
+
+
+
+#func blender_sigmoid_exact(v: float) -> float:
+	## pivots: 0.60606060606060608, 0.48943708957387833 = 20/33, pow(0.18, (1.0 / 2.4))
+	## lengths: 0, 0
+	## powers: 1.5, 1.5
+	## limits: (0,0),(1,1)
+	## slope: 2.4
+	## transition_toe_x: 0.60606060606060608 = -10.0 / (6.5 - (-10.0))
+	## transition_shoulder_y: 0.60606060606060608 = -10.0 / (6.5 - (-10.0))
+	## transition_toe_y: 0.48943708957387833 = pow(0.18, (1.0 / 2.4))
+	## transition_shoulder_y: 0.48943708957387833 = pow(0.18, (1.0 / 2.4))
+	## inverse_transition_toe_x: 0.39393939393939392 = 1 - transition_toe_x
+	## inverse_transition_toe_y: 0.51056291042612167 = 1 - transition_toe_y
+	## inverse_limit_toe_x: 1.0
+	## inverse_limit_toe_y: 1.0
+	## scale_toe: -0.56567560665437455
+	## scale_shoulder: 0.71519828627904436
+	## intercept: -0.96510836497157626
+#
+	#var threshold = 0.6060606060606061; # = 20/33 = -10.0 / (6.5 - (-10.0))
+	#var pivot_y = pow(0.18, (1.0 / 2.4)) # = 0.48943708957387833
+	#var slope_pivot = 2.4
+	##var a_up = 69.86278913545539; # ??
+	##var a_down = 59.507875; # ??
+	#var b_up = 3/2; # = 1.5 = powers.y
+	#var b_down = 3/2; # = 1.5 = powers.x
+	#var c_up = -1.0 / b_up; # -1 / power.y = -0.30769230769230769230769230769231
+	#var c_down = -1.0 / b_down; # -1 / power.x = -0.33333333333333333333333333333333
+#
+	#var mask = step(v, threshold);
+	#var a = a_up + (a_down - a_up) * mask;
+	#var b = b_up + (b_down - b_up) * mask;
+	#var c = c_up + (c_down - c_up) * mask;
+	#return pivot_y + ((((-1 * slope_pivot) * threshold)) + slope_pivot * v) * pow(1.0 + a * pow(abs(v - threshold), b), c);
+
+
 
 func troy_sigmoid_exact(v: float) -> float:
-	var threshold = 0.6060606060606061;
+	# x_pivot: 0.6060606060606061 = 20/33 = abs(AgX_min_EV / (AgX_max_EV - AgX_min_EV)) = -10.0 / (6.5 - (-10.0))
+	# y_pivot: 0.50
+	# slope_pivot: 2.0
+	# power: (3.0, 3.25)
+	
+	var threshold = 0.6060606060606061; # = 20/33 = -10.0 / (6.5 - (-10.0))
 	var a_up = 69.86278913545539;
 	var a_down = 59.507875;
-	var b_up = 13.0 / 4.0;
-	var b_down = 3.0 / 1.0;
-	var c_up = -4.0 / 13.0;
-	var c_down = -1.0 / 3.0;
+	var b_up = 13.0 / 4.0; # = 3.25 = power.y
+	var b_down = 3.0 / 1.0; # = 3.0 = power.x
+	var c_up = -4.0 / 13.0; # = -1 / power.y = -0.30769230769230769230769230769231
+	var c_down = -1.0 / 3.0; # = -1 / power.x = -0.33333333333333333333333333333333
 
 	var mask = step(v, threshold);
 	var a = a_up + (a_down - a_up) * mask;
