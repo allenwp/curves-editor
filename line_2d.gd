@@ -33,7 +33,7 @@ func refresh() -> void:
 	for i in range(num_points):
 		var val: float = i / (num_points - 1.0)
 
-		var y_val: float = troy_sigmoid_exact(val) if use_troy_curve else blender_sigmoid_exact(val)
+		var y_val: float = blender_sigmoid_optimized(val) if use_troy_curve else blender_sigmoid_exact(val)
 
 		array.push_back(Vector2(val * 1000.0, y_val * -1000.0))
 	points = array
@@ -47,6 +47,21 @@ func get_new_poly_approx(x: float) -> float:
 
 
 
+
+func blender_sigmoid_optimized(v: float) ->float:
+	var x_pivot = 0.60606060606060606061 # = abs(LOG2_MIN / (LOG2_MAX - LOG2_MIN))
+	var y_pivot = 0.48943708957387834110 # = MIDDLE_GRAY ^ (1.0 / 2.4)
+	var d_top = 46.141050157836352586
+	var d_bottom = -58.33732197712189689
+	var e_top = -27.964272822931122779
+	var e_bottom = 35.355952713407210237
+
+	var inner_power = 1.5
+	var outer_power = -2.0 / 3.0
+	var mask = step(v, x_pivot)
+	var d = d_top + (d_bottom - d_top) * mask
+	var e = e_top + (e_bottom - e_top) * mask
+	return y_pivot + (((-2.4 * x_pivot)) + 2.4 * v) * pow(1.0 + 0.019613086908021587964 * pow(abs(e + d * v), inner_power), outer_power) # abs might not be necessary?
 
 
 
