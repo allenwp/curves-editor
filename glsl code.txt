@@ -1,0 +1,16 @@
+// EaryChow's AgX sigmoid curve
+vec3 agx_contrast(vec3 v) {
+	const float x_pivot = 0.60606060606060606061f; // = abs(LOG2_MIN / (LOG2_MAX - LOG2_MIN))
+	const float y_pivot = 0.48943708957387834110f; // = MIDDLE_GRAY ^ (1.0 / 2.4)
+	const float d_top = 46.141050157836352586f;
+	const float d_bottom = -58.33732197712189689f;
+	const float e_top = -27.964272822931122779f;
+	const float e_bottom = 35.355952713407210237f;
+	const vec3 inner_power = vec3(1.5f);
+	const vec3 outer_power = vec3(-2.0f / 3.0f);
+
+	vec3 mask = step(v, vec3(x_pivot));
+	vec3 d = d_top + (d_bottom - d_top) * mask;
+	vec3 e = e_top + (e_bottom - e_top) * mask;
+	return y_pivot + (((-2.4 * x_pivot)) + 2.4 * v) * pow(1.0 + 0.019613086908021587964 * pow(abs(e + d * v), inner_power), outer_power); // abs might not be necessary?
+}
