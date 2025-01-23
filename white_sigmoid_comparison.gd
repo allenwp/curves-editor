@@ -16,7 +16,7 @@ func refresh() -> void:
 	var array: PackedVector2Array
 	var num_points: float = 4096.0
 	var min_stops = -12.0
-	var max_stops = 4.0
+	var max_stops = 3.0
 	for i in range(num_points):
 		var val: float = (i / (num_points - 1)) * (max_stops - min_stops) + min_stops
 		val = pow(2.0, val) # convert from log2 encoding to linear encoding
@@ -24,10 +24,10 @@ func refresh() -> void:
 		#var y_val: Vector3 = tonemap_linear(Vector3(val, val, val))
 		#var y_val: Vector3 = tonemap_reinhard(Vector3(val, val, val))
 		#var y_val: Vector3 = tonemap_filmic(Vector3(val, val, val))
-		#var y_val: Vector3 = tonemap_aces(Vector3(val, val, val), white)
+		var y_val: Vector3 = tonemap_aces(Vector3(val, val, val), white)
 
-		white = pow(2.0, LOG2_MAX) * MIDDLE_GRAY
-		var y_val: Vector3 = tonemap_agx(Vector3(val, val, val))
+		#white = pow(2.0, LOG2_MAX) * MIDDLE_GRAY
+		#var y_val: Vector3 = tonemap_agx(Vector3(val, val, val))
 
 		# clip to [0.0, 1.0]
 		y_val.x = maxf(minf(y_val.x, 1.0), 0.0)
@@ -43,8 +43,9 @@ func refresh() -> void:
 
 		# to display y axis in log2 space: (log2(y_val.x) + abs(min_stops)) / (max_stops - min_stops) * -1000.0
 		# to display y axis in linear space: y_val.x * -1000.0
-		array.push_back(Vector2((log2(val) + abs(min_stops)) / (max_stops - min_stops)  * 1000.0, (log2(y_val.x) + abs(min_stops)) / (max_stops - min_stops) * -1000.0))
+		#array.push_back(Vector2((log2(val) + abs(min_stops)) / (max_stops - min_stops)  * 1000.0, (log2(y_val.x) + abs(min_stops)) / (max_stops - min_stops) * -1000.0))
 		#array.push_back(Vector2(pow(val, 1/2.2)  * 1000.0, pow(y_val.x, 1/2.2) * -1000.0))
+		array.push_back(Vector2(val / ((pow(2, max_stops) - (pow(2, min_stops)))) * 1000.0, y_val.x * -1000.0))
 	points = array
 
 
