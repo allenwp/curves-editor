@@ -16,8 +16,6 @@ func _init() -> void:
 	populate_ref_points()
 
 func _process(_delta: float) -> void:
-	if randf() < 0.001:
-		print("hi")
 	if use_reference_curve:
 		points = reference_points
 	else:
@@ -72,7 +70,7 @@ func blender_sigmoid_optimized(v: float) ->float:
 
 
 
-func scale(transition_x, transition_y, power, slope) -> float:
+func scale_function(transition_x, transition_y, power, slope) -> float:
 	var term_a: float = (slope * (1.0 - transition_x)) ** (-1.0 * power);
 	var term_b: float = (((slope * (1.0 - transition_x)) / (1.0 - transition_y)) ** power) - 1.0
 	return (term_a * term_b) ** (-1.0 / power)
@@ -94,9 +92,9 @@ func calculate_sigmoid(x_in: float) -> float:
 
 	var scaleValue
 	if x_in < pivot_x:
-		scaleValue = -1.0 * scale(1.0 - pivot_x, 1.0 - pivot_y, power, slope)
+		scaleValue = -1.0 * scale_function(1.0 - pivot_x, 1.0 - pivot_y, power, slope)
 	else:
-		scaleValue = scale(pivot_x, pivot_y, power, slope)
+		scaleValue = scale_function(pivot_x, pivot_y, power, slope)
 
 	return exponential_curve(x_in, scaleValue, slope, power, pivot_x, pivot_y)
 
@@ -113,7 +111,7 @@ func blender_sigmoid_exact(v: float) -> float:
 # 	var denominator = ((slope ** 2.0) + 1.0) ** (1.0 / 2.0)
 # 	return numerator / denominator + coordinate
 
-# func scale(limit_x, limit_y, transition_x, transition_y, power, slope) -> float:
+# func scale_function(limit_x, limit_y, transition_x, transition_y, power, slope) -> float:
 # 	var term_a: float = (slope * (limit_x - transition_x)) ** (-1.0 * power);
 # 	var term_b: float = (((slope * (limit_x - transition_x)) / (limit_y - transition_y)) ** power) - 1.0
 # 	return (term_a * term_b) ** (-1.0 / power)
@@ -143,8 +141,8 @@ func blender_sigmoid_exact(v: float) -> float:
 # 	var inverse_limit_toe_x: float = 1.0
 # 	var inverse_limit_toe_y: float = 1.0
 
-# 	var scale_toe: float = -1.0 * scale(inverse_limit_toe_x, inverse_limit_toe_y, inverse_transition_toe_x, inverse_transition_toe_y, powers, slope)
-# 	var scale_shoulder: float = scale(limits[1], limits[1], transition_shoulder_x, transition_shoulder_y, powers, slope)
+# 	var scale_toe: float = -1.0 * scale_function(inverse_limit_toe_x, inverse_limit_toe_y, inverse_transition_toe_x, inverse_transition_toe_y, powers, slope)
+# 	var scale_shoulder: float = scale_function(limits[1], limits[1], transition_shoulder_x, transition_shoulder_y, powers, slope)
 # 	var intercept: float = transition_toe_y - (slope * transition_toe_x)
 
 # 	if x_in < transition_toe_x:

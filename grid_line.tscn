@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://c34i0y5hd732d"]
+
+[node name="GridLine" type="Node2D"]
+
+[node name="Line2D" type="Line2D" parent="."]
+points = PackedVector2Array(0, 0, 0, 1000)
+width = 2.0
+default_color = Color(0.275472, 0.275472, 0.275472, 1)
+
+[node name="Label" type="Label" parent="."]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -20.0
+offset_top = 1000.0
+offset_right = 20.0
+offset_bottom = 1023.0
+grow_horizontal = 2
+text = "0.0
+"
+horizontal_alignment = 1
