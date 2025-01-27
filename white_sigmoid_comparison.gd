@@ -155,8 +155,9 @@ func tonemap_agx(color: Vector3) -> Vector3:
 	agx_outset_rec2020_to_srgb_matrix.y = Vector3(-0.85585845117807513559, 1.3264510741502356555, -0.23822464068860595117)
 	agx_outset_rec2020_to_srgb_matrix.z = Vector3(-0.10886710826831608324, -0.027084020983874825605, 1.402665347143271889);
 
+	white = max(1.172, white) # sigmoid function breaks down with a lower max than this.
 	LOG2_MAX = log2(white / MIDDLE_GRAY)
-
+	
 	# Large negative values in one channel and large positive values in other
 	# channels can result in a colour that appears darker and more saturated than
 	# desired after passing it through the inset matrix. For this reason, it is
