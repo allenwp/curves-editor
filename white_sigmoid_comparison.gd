@@ -211,4 +211,4 @@ func tonemap_agx(color: Vector3) -> Vector3:
 func log_encoding_Log2(lin: float, middle_grey: float, min_exposure: float, max_exposure: float) -> float:
 	var lg2 = log2(lin / middle_grey)
 	var log_norm = (lg2 - min_exposure) / (max_exposure - min_exposure)
-	return clamp(log_norm, 0.0, 1.0)
+	return log_norm
