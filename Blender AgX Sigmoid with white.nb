@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       154,          7]
-NotebookDataLength[     13139,        329]
-NotebookOptionsPosition[     12778,        315]
-NotebookOutlinePosition[     13180,        331]
-CellTagsIndexPosition[     13137,        328]
+NotebookDataLength[     13404,        334]
+NotebookOptionsPosition[     13043,        320]
+NotebookOutlinePosition[     13445,        336]
+CellTagsIndexPosition[     13402,        333]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -142,8 +142,8 @@ Cell[BoxData[
      RowBox[{"Module", "[", 
       RowBox[{
        RowBox[{"{", 
-        RowBox[{"scaleValue", ",", "logEncodedX"}], "}"}], ",", 
-       "\[IndentingNewLine]", 
+        RowBox[{"scaleValue", ",", "logEncodedX", ",", " ", "sigmoidResult"}],
+         "}"}], ",", "\[IndentingNewLine]", 
        RowBox[{
         RowBox[{"logEncodedX", "=", 
          RowBox[{"logEncodingLog2", "[", 
@@ -176,11 +176,14 @@ Cell[BoxData[
             RowBox[{
             "xPivot", ",", "yPivot", ",", "kPower", ",", " ", "kSlope"}], 
             "]"}]}], "]"}]}], ";", 
-        RowBox[{"exponentialCurve", "[", 
-         RowBox[{
-         "logEncodedX", ",", "scaleValue", ",", " ", "xPivot", ",", "yPivot", 
-          ",", " ", "kPower", ",", " ", "kSlope"}], "]"}]}]}], 
-      "\[IndentingNewLine]", "]"}]}], ";"}], "\n", "\n", 
+        RowBox[{"sigmoidResult", "=", 
+         RowBox[{"exponentialCurve", "[", 
+          RowBox[{
+          "logEncodedX", ",", "scaleValue", ",", " ", "xPivot", ",", "yPivot",
+            ",", " ", "kPower", ",", " ", "kSlope"}], "]"}]}], ";", 
+        "\[IndentingNewLine]", 
+        RowBox[{"sigmoidResult", "^", "kSlope"}]}]}], "\[IndentingNewLine]", 
+      "]"}]}], ";"}], "\n", "\n", 
    RowBox[{"(*", 
     RowBox[{
     "Calculate", " ", "OpenColorIO", " ", "allocation", " ", "for", " ", 
@@ -310,8 +313,10 @@ Cell[BoxData[
    3.9470049698680553`*^9}, {3.9470050640590267`*^9, 3.947005130634409*^9}, {
    3.9470051810991116`*^9, 3.9470051944881706`*^9}, {3.947005247099184*^9, 
    3.9470052501446705`*^9}, {3.947005305833317*^9, 3.9470053279630146`*^9}, {
-   3.9470053617589912`*^9, 3.9470053812215843`*^9}, 3.9470055965337677`*^9},
- CellLabel->"In[1]:=",ExpressionUUID->"d279a19e-1257-234f-b2cc-fbca5069f767"]
+   3.9470053617589912`*^9, 3.9470053812215843`*^9}, 3.9470055965337677`*^9, {
+   3.9470056486283264`*^9, 3.947005656652809*^9}, {3.94700576145854*^9, 
+   3.9470058062110806`*^9}},
+ CellLabel->"In[61]:=",ExpressionUUID->"d279a19e-1257-234f-b2cc-fbca5069f767"]
 },
 WindowSize->{1150.8, 1216.8},
 WindowMargins->{{0, Automatic}, {Automatic, 0}},
@@ -330,7 +335,7 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[554, 20, 12220, 293, 846, "Input",ExpressionUUID->"d279a19e-1257-234f-b2cc-fbca5069f767"]
+Cell[554, 20, 12485, 298, 865, "Input",ExpressionUUID->"d279a19e-1257-234f-b2cc-fbca5069f767"]
 }
 ]
 *)
