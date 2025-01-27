@@ -6,6 +6,7 @@ extends Line2D
 @export var use_reference_curve: bool
 @export var use_exact_curve: bool
 
+@export var white: float
 @export var LOG2_MIN: float = -10.0
 @export var LOG2_MAX: float = +6.5
 @export var MIDDLE_GRAY: float = 0.18
@@ -43,8 +44,8 @@ func get_new_poly_approx(x: float) -> float:
 
 
 
-# func log2(value: float) -> float:
-# 	return log(value) / log(2)
+func log2(value: float) -> float:
+	return log(value) / log(2)
 
 func step(edge, value):
 	return 0.0 if value < edge else 1.0
@@ -82,12 +83,14 @@ func exponential(x_in, power) -> float:
 	return x_in / ((1 + (x_in ** power)) ** (1 / power))
 
 func calculate_sigmoid(x_in: float) -> float:
+	white = pow(2.0, LOG2_MAX) * MIDDLE_GRAY
 	const slope: float = 2.4
 	const power: float = 1.5
-	const LOG2_MIN: float = -10.0
-	const LOG2_MAX: float = +6.5
-	const MIDDLE_GRAY: float = 0.18
-	var pivot_x: float = abs(LOG2_MIN/(LOG2_MAX  - LOG2_MIN))
+	# const LOG2_MIN: float = -10.0
+	# const LOG2_MAX: float = +6.5
+	# const MIDDLE_GRAY: float = 0.18
+
+	var pivot_x: float = abs(LOG2_MIN/(LOG2_MAX  - LOG2_MIN)) # 0.606060606 is 0.18 (middle grey) in original linear values!
 	var pivot_y: float = MIDDLE_GRAY ** (1.0 / 2.4)
 
 	var scaleValue

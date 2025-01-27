@@ -15,8 +15,8 @@ func _process(_delta: float) -> void:
 func refresh() -> void:
 	var array: PackedVector2Array
 	var num_points: float = 4096.0
-	var min_stops = -12.0
-	var max_stops = 3.0
+	var min_stops = -12
+	var max_stops = 4
 	for i in range(num_points):
 		var val: float = (i / (num_points - 1)) * (max_stops - min_stops) + min_stops
 		val = pow(2.0, val) # convert from log2 encoding to linear encoding
@@ -24,10 +24,8 @@ func refresh() -> void:
 		#var y_val: Vector3 = tonemap_linear(Vector3(val, val, val))
 		#var y_val: Vector3 = tonemap_reinhard(Vector3(val, val, val))
 		#var y_val: Vector3 = tonemap_filmic(Vector3(val, val, val))
-		var y_val: Vector3 = tonemap_aces(Vector3(val, val, val), white)
-
-		#white = pow(2.0, LOG2_MAX) * MIDDLE_GRAY
-		#var y_val: Vector3 = tonemap_agx(Vector3(val, val, val))
+		#var y_val: Vector3 = tonemap_aces(Vector3(val, val, val), white)
+		var y_val: Vector3 = tonemap_agx(Vector3(val, val, val))
 
 		# clip to [0.0, 1.0]
 		y_val.x = maxf(minf(y_val.x, 1.0), 0.0)
@@ -43,9 +41,9 @@ func refresh() -> void:
 
 		# to display y axis in log2 space: (log2(y_val.x) + abs(min_stops)) / (max_stops - min_stops) * -1000.0
 		# to display y axis in linear space: y_val.x * -1000.0
-		#array.push_back(Vector2((log2(val) + abs(min_stops)) / (max_stops - min_stops)  * 1000.0, (log2(y_val.x) + abs(min_stops)) / (max_stops - min_stops) * -1000.0))
+		array.push_back(Vector2((log2(val) + abs(min_stops)) / (max_stops - min_stops)  * 1000.0, (log2(y_val.x) + abs(min_stops)) / (max_stops - min_stops) * -1000.0))
 		#array.push_back(Vector2(pow(val, 1/2.2)  * 1000.0, pow(y_val.x, 1/2.2) * -1000.0))
-		array.push_back(Vector2(val / ((pow(2, max_stops) - (pow(2, min_stops)))) * 1000.0, y_val.x * -1000.0))
+		#array.push_back(Vector2(val / ((pow(2, max_stops) - (pow(2, min_stops)))) * 1000.0, y_val.x * -1000.0))
 	points = array
 
 
@@ -152,6 +150,7 @@ func tonemap_agx(color: Vector3) -> Vector3:
 	agx_outset_rec2020_to_srgb_matrix.y = Vector3(-0.85585845117807513559, 1.3264510741502356555, -0.23822464068860595117)
 	agx_outset_rec2020_to_srgb_matrix.z = Vector3(-0.10886710826831608324, -0.027084020983874825605, 1.402665347143271889);
 
+	LOG2_MAX = log2(white / MIDDLE_GRAY)
 
 	# Large negative values in one channel and large positive values in other
 	# channels can result in a colour that appears darker and more saturated than
@@ -176,9 +175,13 @@ func tonemap_agx(color: Vector3) -> Vector3:
 	# Log2 space encoding.
 	# Must be clamped because agx_contrast_approx may not work
 	# well with values outside of the range [0.0, 1.0]
-	color.x = to_agx_log2(color.x)
-	color.y = to_agx_log2(color.y)
-	color.z = to_agx_log2(color.z)
+	# color.x = to_agx_log2(color.x)
+	# color.y = to_agx_log2(color.y)
+	# color.z = to_agx_log2(color.z)
+
+	color.x = log_encoding_Log2(color.x, MIDDLE_GRAY, LOG2_MIN, LOG2_MAX)
+	color.y = log_encoding_Log2(color.y, MIDDLE_GRAY, LOG2_MIN, LOG2_MAX)
+	color.z = log_encoding_Log2(color.z, MIDDLE_GRAY, LOG2_MIN, LOG2_MAX)
 
 	# Apply sigmoid function approximation.
 	color.x = calculate_sigmoid(color.x);
@@ -197,9 +200,15 @@ func tonemap_agx(color: Vector3) -> Vector3:
 	return color;
 
 
-func to_agx_log2(val: float) -> float:
-	var min_ev: float = log2(pow(2.0, LOG2_MIN) * MIDDLE_GRAY)
-	var max_ev: float = log2(pow(2.0, LOG2_MAX) * MIDDLE_GRAY)
-	val = clamp(log2(val), min_ev, max_ev)
-	val = (val - min_ev) / (max_ev - min_ev)
-	return val
+# func to_agx_log2(val: float) -> float:
+# 	var min_ev: float = log2(pow(2.0, LOG2_MIN) * MIDDLE_GRAY)
+# 	var max_ev: float = log2(pow(2.0, LOG2_MAX) * MIDDLE_GRAY)
+# 	val = clamp(log2(val), min_ev, max_ev)
+# 	val = (val - min_ev) / (max_ev - min_ev)
+# 	return val
+
+# log_encoding_Log2 from colour/models/rgb/transfer_functions/log.py of colour science package
+func log_encoding_Log2(lin: float, middle_grey: float, min_exposure: float, max_exposure: float) -> float:
+	var lg2 = log2(lin / middle_grey)
+	var log_norm = (lg2 - min_exposure) / (max_exposure - min_exposure)
+	return clamp(log_norm, 0.0, 1.0)
