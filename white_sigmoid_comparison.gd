@@ -118,10 +118,15 @@ func scale_function(transition_x, transition_y, power, slope) -> float:
 	return (term_a * term_b) ** (-1.0 / power)
 
 func exponential_curve(x_in, scale_input, slope, power, transition_x, transition_y) -> float:
-	return (scale_input * exponential(((slope * (x_in - transition_x)) / scale_input), power)) + transition_y
+	var input: float = ((slope * (x_in - transition_x)) / scale_input)
+	var result: float = (scale_input * exponential(input, power)) + transition_y
+	# Even when x_in is non-negative, rounding error can cause the result to be -0.
+	# This clipping deals with both cases of negative input and rounding error.
+	return max(result, 0.0)
 
 func exponential(x_in, power) -> float:
-	return x_in / ((1 + (x_in ** power)) ** (1 / power))
+	var result: float = x_in / ((1 + (x_in ** power)) ** (1 / power))
+	return result
 
 func calculate_sigmoid(x_in: float) -> float:
 	const slope: float = 2.4
@@ -211,4 +216,4 @@ func tonemap_agx(color: Vector3) -> Vector3:
 func log_encoding_Log2(lin: float, middle_grey: float, min_exposure: float, max_exposure: float) -> float:
 	var lg2 = log2(lin / middle_grey)
 	var log_norm = (lg2 - min_exposure) / (max_exposure - min_exposure)
-	return log_norm
+	return log_norm # Might be negative, but negatives are clipped later.
