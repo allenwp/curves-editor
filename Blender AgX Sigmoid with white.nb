@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       154,          7]
-NotebookDataLength[     15549,        369]
-NotebookOptionsPosition[     15189,        355]
-NotebookOutlinePosition[     15589,        371]
-CellTagsIndexPosition[     15546,        368]
+NotebookDataLength[     15693,        371]
+NotebookOptionsPosition[     15327,        357]
+NotebookOutlinePosition[     15733,        373]
+CellTagsIndexPosition[     15690,        370]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -196,7 +196,7 @@ Cell[BoxData[
       RowBox[{
        RowBox[{"2", "^", "inEV"}], "*", "odMiddleGrey"}], "]"}]}], ";"}], 
    "\n", "\n", 
-   RowBox[{"(*", "Debug", "*)"}], "\n", 
+   RowBox[{"(*", "Debug", "*)"}], "\[IndentingNewLine]", 
    RowBox[{"(*", 
     RowBox[{"Plot", "[", 
      RowBox[{
@@ -204,7 +204,7 @@ Cell[BoxData[
        RowBox[{"x", ",", " ", "6.5"}], "]"}], ",", 
       RowBox[{"{", 
        RowBox[{"x", ",", "0", ",", "17"}], "}"}]}], "]"}], "*)"}], 
-   "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   "\[IndentingNewLine]", "\n", 
    RowBox[{"(*", "\[IndentingNewLine]", 
     RowBox[{
      RowBox[{"normLog2Max", " ", "=", " ", 
@@ -229,14 +229,15 @@ Cell[BoxData[
        RowBox[{
         RowBox[{"1", "-", "xPivot"}], ",", 
         RowBox[{"1", "-", "yPivot"}], ",", "kPower", ",", " ", "kSlope"}], 
-       "]"}]}]}], ";"}], "\[IndentingNewLine]", 
-   RowBox[{"Assuming", "[", 
-    RowBox[{
-     RowBox[{"x", ">=", "0"}], " ", ",", 
-     RowBox[{"Simplify", "[", 
-      RowBox[{"calculateSigmoid", "[", 
-       RowBox[{"logEncodedX", ",", "xPivot", ",", "scaleValue"}], "]"}], 
-      "]"}]}], "]"}], "\n", 
+       "]"}]}]}], ";"}], "\n", 
+   RowBox[{"(*", 
+    RowBox[{"Assuming", "[", 
+     RowBox[{
+      RowBox[{"x", ">=", "0"}], " ", ",", 
+      RowBox[{"Simplify", "[", 
+       RowBox[{"calculateSigmoid", "[", 
+        RowBox[{"logEncodedX", ",", "xPivot", ",", "scaleValue"}], "]"}], 
+       "]"}]}], "]"}], "*)"}], "\[IndentingNewLine]", 
    RowBox[{"Assuming", "[", 
     RowBox[{
      RowBox[{"x", ">=", "0"}], ",", 
@@ -251,14 +252,15 @@ Cell[BoxData[
     RowBox[{"scaleValue", " ", "=", " ", 
      RowBox[{"equationScale", "[", 
       RowBox[{"xPivot", ",", "yPivot", ",", "kPower", ",", " ", "kSlope"}], 
-      "]"}]}], ";"}], "\[IndentingNewLine]", 
-   RowBox[{"Assuming", "[", 
-    RowBox[{
-     RowBox[{"x", ">=", "0"}], " ", ",", 
-     RowBox[{"Simplify", "[", 
-      RowBox[{"calculateSigmoid", "[", 
-       RowBox[{"logEncodedX", ",", "xPivot", ",", "scaleValue"}], "]"}], 
-      "]"}]}], "]"}], "\n", 
+      "]"}]}], ";"}], "\n", 
+   RowBox[{"(*", 
+    RowBox[{"Assuming", "[", 
+     RowBox[{
+      RowBox[{"x", ">=", "0"}], " ", ",", 
+      RowBox[{"Simplify", "[", 
+       RowBox[{"calculateSigmoid", "[", 
+        RowBox[{"logEncodedX", ",", "xPivot", ",", "scaleValue"}], "]"}], 
+       "]"}]}], "]"}], "*)"}], "\[IndentingNewLine]", 
    RowBox[{"Assuming", "[", 
     RowBox[{
      RowBox[{"x", ">=", "0"}], ",", 
@@ -349,12 +351,12 @@ be better due to extra vec3 multiply...):\>\"", "]"}], "\n",
    3.9470723958649483`*^9, 3.947072467103363*^9}, 3.947072537726055*^9, {
    3.9470725939033356`*^9, 3.947072764872673*^9}, {3.947072802699524*^9, 
    3.9470728035887527`*^9}, {3.9470730954742146`*^9, 
-   3.9470730999045696`*^9}, {3.9470753400252132`*^9, 
-   3.947075367319727*^9}},ExpressionUUID->"d279a19e-1257-234f-b2cc-\
-fbca5069f767"]
+   3.9470730999045696`*^9}, {3.9470753400252132`*^9, 3.947075367319727*^9}, {
+   3.9470773876007957`*^9, 3.9470773949270573`*^9}},
+ CellLabel->"In[62]:=",ExpressionUUID->"d279a19e-1257-234f-b2cc-fbca5069f767"]
 },
-WindowSize->{1245, 1216.8},
-WindowMargins->{{0, Automatic}, {Automatic, 0}},
+WindowSize->{1413, 1216.8},
+WindowMargins->{{-168.6, Automatic}, {Automatic, -3}},
 FrontEndVersion->"14.1 for Microsoft Windows (64-bit) (July 16, 2024)",
 StyleDefinitions->"Default.nb",
 ExpressionUUID->"1314a039-1bd9-d745-a688-c53e779c8ee4"
@@ -370,7 +372,7 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[554, 20, 14631, 333, 1131, "Input",ExpressionUUID->"d279a19e-1257-234f-b2cc-fbca5069f767"]
+Cell[554, 20, 14769, 335, 1131, "Input",ExpressionUUID->"d279a19e-1257-234f-b2cc-fbca5069f767"]
 }
 ]
 *)

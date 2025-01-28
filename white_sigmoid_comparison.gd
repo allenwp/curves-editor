@@ -15,8 +15,8 @@ func _process(_delta: float) -> void:
 func refresh() -> void:
 	var array: PackedVector2Array
 	var num_points: float = 4096.0
-	var min_stops = -12
-	var max_stops = 4
+	var min_stops = -15
+	var max_stops = 15
 	for i in range(num_points):
 		var val: float = (i / (num_points - 1)) * (max_stops - min_stops) + min_stops
 		val = pow(2.0, val) # convert from log2 encoding to linear encoding
@@ -25,7 +25,8 @@ func refresh() -> void:
 		#var y_val: Vector3 = tonemap_reinhard(Vector3(val, val, val))
 		#var y_val: Vector3 = tonemap_filmic(Vector3(val, val, val))
 		#var y_val: Vector3 = tonemap_aces(Vector3(val, val, val), white)
-		var y_val: Vector3 = tonemap_agx(Vector3(val, val, val))
+		#var y_val: Vector3 = tonemap_agx(Vector3(val, val, val))
+		var y_val: Vector3 = tonemap_agx_optimized(Vector3(val, val, val))
 
 		# clip to [0.0, 1.0]
 		y_val.x = maxf(minf(y_val.x, 1.0), 0.0)
@@ -204,6 +205,76 @@ func tonemap_agx(color: Vector3) -> Vector3:
 	# simply return the color, even if it has negative components. These negative
 	# components may be useful for subsequent color adjustments.
 	return color;
+	
+
+
+func tonemap_agx_optimized(color: Vector3) -> Vector3:
+	# Combined linear sRGB to linear Rec 2020 and Blender AgX inset matrices:
+	var srgb_to_rec2020_agx_inset_matrix: Basis = Basis()
+	srgb_to_rec2020_agx_inset_matrix.x = Vector3(0.54490813676363087053, 0.14044005884001287035, 0.088827411851915368603)
+	srgb_to_rec2020_agx_inset_matrix.y = Vector3(0.37377945959812267119, 0.75410959864013760045, 0.17887712465043811023)
+	srgb_to_rec2020_agx_inset_matrix.z = Vector3(0.081384976686407536266, 0.10543358536857773485, 0.73224999956948382528);
+
+	# Combined inverse AgX outset matrix and linear Rec 2020 to linear sRGB matrices.
+	var agx_outset_rec2020_to_srgb_matrix: Basis = Basis()
+	agx_outset_rec2020_to_srgb_matrix.x = Vector3(1.9645509602733325934, -0.29932243390911083839, -0.16436833806080403409)
+	agx_outset_rec2020_to_srgb_matrix.y = Vector3(-0.85585845117807513559, 1.3264510741502356555, -0.23822464068860595117)
+	agx_outset_rec2020_to_srgb_matrix.z = Vector3(-0.10886710826831608324, -0.027084020983874825605, 1.402665347143271889);
+
+	white = max(1.172, white) # sigmoid function breaks down with a lower max than this.
+	LOG2_MAX = log2(white / MIDDLE_GRAY)
+	
+	# Large negative values in one channel and large positive values in other
+	# channels can result in a colour that appears darker and more saturated than
+	# desired after passing it through the inset matrix. For this reason, it is
+	# best to prevent negative input values.
+	# This is done before the Rec. 2020 transform to allow the Rec. 2020
+	# transform to be combined with the AgX inset matrix. This results in a loss
+	# of color information that could be correctly interpreted within the
+	# Rec. 2020 color space as positive RGB values, but it is less common for Godot
+	# to provide this function with negative sRGB values and therefore not worth
+	# the performance cost of an additional matrix multiplication.
+	# A value of 2e-10 intentionally introduces insignificant error to prevent
+	# log2(0.0) after the inset matrix is applied; color will be >= 1e-10 after
+	# the matrix transform.
+	color.x = max(color.x, 2e-10);
+	color.y = max(color.y, 2e-10);
+	color.z = max(color.z, 2e-10);
+	
+	color.x = agx_optimized_single_value(color.x);
+	color.y = agx_optimized_single_value(color.y);
+	color.z = agx_optimized_single_value(color.z);
+
+	# Do AGX in rec2020 to match Blender and then apply inset matrix.
+	color = srgb_to_rec2020_agx_inset_matrix * color;
+	
+
+
+	# Apply outset to make the result more chroma-laden and then go back to linear sRGB.
+	color = agx_outset_rec2020_to_srgb_matrix * color;
+
+	# Blender's lusRGB.compensate_low_side is too complex for this shader, so
+	# simply return the color, even if it has negative components. These negative
+	# components may be useful for subsequent color adjustments.
+	return color;
+	
+func agx_optimized_single_value(x: float) -> float:
+	const three_by_two = 3.0 / 2.0;
+	const two_by_three = 2.0 / 3.0;
+	var log_range: float = LOG2_MAX  - LOG2_MIN
+	var pivot_x: float = 10.0 / log_range
+	var log_encoded_x: float = (log2(x / MIDDLE_GRAY) - LOG2_MIN) / log_range
+	var distance: float = log_encoded_x - pivot_x
+	
+	var A: float
+	var B: float
+	if log_encoded_x < pivot_x:
+		A =  pivot_x - log_encoded_x
+		B = 10.858542784410844740 - (1.0 / pow(pivot_x, three_by_two))
+	else:
+		A = distance
+		B = (-1.0 + 10.191614048660063014 * pow(1.0 - pivot_x, three_by_two)) / pow(1.0 - pivot_x, three_by_two)
+	return pow(0.48943708957387834110 + (2.4 * distance) / pow(1 + pow(pow(B, two_by_three) * A, three_by_two), two_by_three), 12.0 / 5.0);
 
 
 # func to_agx_log2(val: float) -> float:
