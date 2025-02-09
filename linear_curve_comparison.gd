@@ -2,6 +2,8 @@
 class_name LinearCurveComparison
 extends Node2D
 
+@export var option_b: bool = false
+
 @export var agx_ref_log2_middle_grey: float = 0.18
 @export var agx_ref_log2_min: float = -10.0
 @export var agx_ref_log2_max: float = 6.5
@@ -10,22 +12,37 @@ func reference_curve(x: float) -> float:
 	return agx_reference(x)
 
 func approx_curve(x: float) -> float:
-	return (-0.00169047 + 1.49227 *x + 0.194039 * x * x)/(1 + 1.86073*x + 0.167678 * x * x)
-	#return (-0.000264666 + 1.50561 * x + 0.225389 * x * x)/(1 + 1.91729 * x + 0.196494 * x * x);
-
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	pass # Replace with function body.
-
+	if option_b:
+		return rational_interpolation(x)
+	else:
+		return krzysztof_narkowicz_aces(x)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
 	pass
 
+
+func krzysztof_narkowicz_aces(x: float) -> float:
+	x *= 0.6
+	var a = 2.51;
+	var b = 0.03;
+	var c = 2.43;
+	var d = 0.59;
+	var e = 0.14;
+	return (x*(a*x+b))/(x*(c*x+d)+e);
+
+func rational_interpolation(x: float) -> float:
+	# RationalInterpolation[agxCurve[x], {x, 2, 2}, {x, kLinearMin, kLinearMax}, Bias -> -0.5109]
+	return (-0.00169047 + 1.49227 *x + 0.194039 * x * x)/(1 + 1.86073*x + 0.167678 * x * x)
+
+func minimax_approxmiation(x: float) -> float:
+	#MiniMaxApproximation[agxCurve[x], {x, {kLinearMin, kLinearMax}, 2, 2},Brake -> {200, 200}, MaxIterations -> 10000][[2, 1]]
+	return (-0.000264666 + 1.50561 * x + 0.225389 * x * x)/(1 + 1.91729 * x + 0.196494 * x * x);
+
+#region AgX Reference
 func log2(value: float) -> float:
 	return log(value) / log(2)
 
-#region AgX Reference
 func scale_function(transition_x, transition_y, power, slope) -> float:
 	var term_a: float = (slope * (1.0 - transition_x)) ** (-1.0 * power);
 	var term_b: float = (((slope * (1.0 - transition_x)) / (1.0 - transition_y)) ** power) - 1.0
